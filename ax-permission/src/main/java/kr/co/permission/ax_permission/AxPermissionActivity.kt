@@ -324,6 +324,10 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         CheckPermission().checkSelfPermission(this , choicePermissionItemList)
 
         permissionBt.isVisible = areAllPermissionsGranted()
+
+        if(areAllPermissionsGranted()){
+            permissionGranted()
+        }
     }
 
     override fun onPermissionResult(permission: String?, isGranted: Boolean) {

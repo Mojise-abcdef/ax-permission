@@ -232,5 +232,19 @@ class AxPermissionSettings {
             false,
             "access" // 접근 권한
         )
+        perMap[Manifest.permission.ACCESS_FINE_LOCATION] = AxPermissionModel(
+            "정확한 위치 정보",
+            "이 권한은 사용자의 정확한 위치를 얻기 위해 필요합니다.",
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            false,
+            "access" // 접근 권한
+        )
+        perMap[Manifest.permission.ACCESS_COARSE_LOCATION] = AxPermissionModel(
+            "대략적인 위치 정보",
+            "이 권한은 사용자의 대략적인 위치를 얻기 위해 필요합니다.",
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            false,
+            "access" // 접근 권한
+        )
     }
 }
