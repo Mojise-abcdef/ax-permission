@@ -36,18 +36,14 @@ class AxPermission private constructor(private val context: Context) {
     }
 
     fun check(): AxPermission {
-        if(essentialPermissionList.isNotEmpty()){
-            intent.putStringArrayListExtra(
-                "essentialPermission",
-                essentialPermissionList as ArrayList<String>
-            )
-        }
-        if(choicePermissionList.isNotEmpty()){
-            intent.putStringArrayListExtra(
-                "choicePermission",
-                choicePermissionList as ArrayList<String>
-            )
-        }
+        intent.putStringArrayListExtra(
+            "essentialPermission",
+            essentialPermissionList as ArrayList<String>
+        )
+        intent.putStringArrayListExtra(
+            "choicePermission",
+            choicePermissionList as ArrayList<String>
+        )
         intent.putExtra("flag" , "check")
         listener = permissionListener
         context.startActivity(intent)
@@ -59,18 +55,14 @@ class AxPermission private constructor(private val context: Context) {
     }
 
     fun onReStart(): AxPermission = apply {
-        if(registerEssentialPermissionGloballyList.isNotEmpty()){
-            intent.putStringArrayListExtra(
-                "essentialPermission",
-                registerEssentialPermissionGloballyList as ArrayList<String>
-            )
-        }
-        if(registerChoicePermissionGloballyList.isNotEmpty()){
-            intent.putStringArrayListExtra(
-                "choicePermission",
-                registerChoicePermissionGloballyList as ArrayList<String>
-            )
-        }
+        intent.putStringArrayListExtra(
+            "essentialPermission",
+            registerEssentialPermissionGloballyList as ArrayList<String>
+        )
+        intent.putStringArrayListExtra(
+            "choicePermission",
+            registerChoicePermissionGloballyList as ArrayList<String>
+        )
         intent.putExtra("flag" , "restart")
         listener = permissionListener
         context.startActivity(intent)
