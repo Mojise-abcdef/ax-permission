@@ -13,6 +13,7 @@ class AxPermission private constructor(private val context: Context) {
     private lateinit var permissionListener: AxPermissionListener
     private var essentialPermissionList = mutableListOf<String>()
     private var choicePermissionList = mutableListOf<String>()
+    private var intent:Intent = Intent(context , AxPermissionActivity::class.java)
 
     fun setPermissionListener(listener: AxPermissionListener): AxPermission = apply {
         this.permissionListener = listener
@@ -35,16 +36,19 @@ class AxPermission private constructor(private val context: Context) {
     }
 
     fun check(): AxPermission {
-
-        val intent = Intent(context, AxPermissionActivity::class.java)
-        intent.putStringArrayListExtra(
-            "essentialPermission",
-            essentialPermissionList as ArrayList<String>
-        )
-        intent.putStringArrayListExtra(
-            "choicePermission",
-            choicePermissionList as ArrayList<String>
-        )
+        if(essentialPermissionList.isNotEmpty()){
+            intent.putStringArrayListExtra(
+                "essentialPermission",
+                essentialPermissionList as ArrayList<String>
+            )
+        }
+        if(choicePermissionList.isNotEmpty()){
+            intent.putStringArrayListExtra(
+                "choicePermission",
+                choicePermissionList as ArrayList<String>
+            )
+        }
+        intent.putExtra("flag" , "check")
         listener = permissionListener
         context.startActivity(intent)
         return this
@@ -55,9 +59,21 @@ class AxPermission private constructor(private val context: Context) {
     }
 
     fun onReStart(): AxPermission = apply {
-        this.essentialPermissionList = registerEssentialPermissionGloballyList
-        this.choicePermissionList = registerChoicePermissionGloballyList
-        this.check()
+        if(registerEssentialPermissionGloballyList.isNotEmpty()){
+            intent.putStringArrayListExtra(
+                "essentialPermission",
+                registerEssentialPermissionGloballyList as ArrayList<String>
+            )
+        }
+        if(registerChoicePermissionGloballyList.isNotEmpty()){
+            intent.putStringArrayListExtra(
+                "choicePermission",
+                registerChoicePermissionGloballyList as ArrayList<String>
+            )
+        }
+        intent.putExtra("flag" , "restart")
+        listener = permissionListener
+        context.startActivity(intent)
     }
 
 

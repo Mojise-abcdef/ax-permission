@@ -85,6 +85,13 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         val choicePermissionList =
             intent.getStringArrayListExtra("choicePermission")?.toMutableList()
 
+        val flag = intent.getStringExtra("flag")
+        if(flag == "check"){
+            if(areAllPermissionsGranted()){
+                finish()
+            }
+        }
+
         essentialPermissionItemList = essentialPermissionList?.let { list ->
             axPermissionSettings.setPermission(list.toMutableList())
         }
@@ -327,6 +334,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
 
         if(areAllPermissionsGranted()){
             permissionGranted()
+            finish()
         }
     }
 
