@@ -88,6 +88,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         val flag = intent.getStringExtra("flag")
         if(flag == "check"){
             if(areAllPermissionsGranted()){
+                permissionGranted()
                 finish()
             }
         }
