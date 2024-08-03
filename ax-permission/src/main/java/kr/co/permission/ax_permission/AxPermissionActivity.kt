@@ -194,6 +194,8 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 updatePermissionStatus()
+                permissionBt.isVisible = areAllPermissionsGranted()
+                println("@@@@ 여기를 탑니다 @@@")
             } else {
                 /*권한 거부시 다이얼로그 호출*/
                 showPermissionDeniedDialog()
@@ -303,8 +305,6 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     private fun checkPermission(){
         CheckPermission().checkSelfPermission(this , essentialPermissionItemList)
         CheckPermission().checkSelfPermission(this , choicePermissionItemList)
-
-        permissionBt.isVisible = areAllPermissionsGranted()
 
         val state = intent.getStringExtra("state")
         when(state){
