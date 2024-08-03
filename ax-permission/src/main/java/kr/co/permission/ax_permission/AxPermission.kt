@@ -44,7 +44,7 @@ class AxPermission private constructor(private val context: Context) {
             "choicePermission",
             choicePermissionList as ArrayList<String>
         )
-        intent.putExtra("flag" , "check")
+        intent.putExtra("state","check")
         listener = permissionListener
         context.startActivity(intent)
         return this
@@ -55,6 +55,9 @@ class AxPermission private constructor(private val context: Context) {
     }
 
     fun onReStart(): AxPermission = apply {
+        /*this.essentialPermissionList = registerEssentialPermissionGloballyList
+        this.choicePermissionList = registerChoicePermissionGloballyList*/
+
         intent.putStringArrayListExtra(
             "essentialPermission",
             registerEssentialPermissionGloballyList as ArrayList<String>
@@ -63,9 +66,10 @@ class AxPermission private constructor(private val context: Context) {
             "choicePermission",
             registerChoicePermissionGloballyList as ArrayList<String>
         )
-        intent.putExtra("flag" , "restart")
+        intent.putExtra("state","restart")
         listener = permissionListener
         context.startActivity(intent)
+        this.check()
     }
 
 

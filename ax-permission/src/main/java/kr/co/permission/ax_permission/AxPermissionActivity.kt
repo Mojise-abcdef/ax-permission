@@ -25,19 +25,20 @@ import kr.co.permission.ax_permission.listener.AxPermissionItemClickListener
 import kr.co.permission.ax_permission.listener.AxPermissionListener
 import kr.co.permission.ax_permission.model.AxPermissionModel
 import kr.co.permission.ax_permission.util.ActivityResultHandler
+import kr.co.permission.ax_permission.util.AlertDialogHandler
 import kr.co.permission.ax_permission.util.AxPermissionSettings
 import kr.co.permission.ax_permission.util.CheckPermission
 
 class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener ,
     ActivityResultHandler.PermissionResultListener {
+    private var essentialPermissionItemList: List<AxPermissionModel>? = listOf()
+    private var choicePermissionItemList: List<AxPermissionModel>? = listOf()
 
     private lateinit var perMissionRecyclerView: RecyclerView
     private lateinit var permissionBt: TextView
     private lateinit var toolbar_arrowLayout: ConstraintLayout
     private val perMissionAdapter: AxPermissionAdapter by lazy { AxPermissionAdapter(this, this) }
     private lateinit var axPermissionSettings: AxPermissionSettings
-    private var essentialPermissionItemList: List<AxPermissionModel>? = listOf()
-    private var choicePermissionItemList: List<AxPermissionModel>? = listOf()
     private var currentPermissionModel: AxPermissionModel? = null
     private val activityResultHandler by lazy { ActivityResultHandler(this, this) }
     private var permissionActionLauncher: ActivityResultLauncher<Intent>? = null
@@ -46,21 +47,6 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1001
     }
-
-    private val settingsLauncher: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if(axPermissionListener == null){
-                finish()
-            }else{
-                currentPermissionModel?.let {
-                    if (ContextCompat.checkSelfPermission(this, it.permission) == PackageManager.PERMISSION_GRANTED) {
-                        onPermissionGranted()
-                    } else {
-                        onPermissionDenied()
-                    }
-                }
-            }
-        }
 
     override fun onStart() {
         super.onStart()
@@ -75,7 +61,6 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         toolbar_arrowLayout = findViewById(R.id.toolbar_arrowLayout)
         perMissionRecyclerView.adapter = perMissionAdapter
         axPermissionSettings = AxPermissionSettings()
-
         axPermissionListener = listener
 
         /*필수 권한*/
@@ -84,14 +69,6 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         /*선택 권한*/
         val choicePermissionList =
             intent.getStringArrayListExtra("choicePermission")?.toMutableList()
-
-        val flag = intent.getStringExtra("flag")
-        if(flag == "check"){
-            if(areAllPermissionsGranted()){
-                permissionGranted()
-                finish()
-            }
-        }
 
         essentialPermissionItemList = essentialPermissionList?.let { list ->
             axPermissionSettings.setPermission(list.toMutableList())
@@ -118,20 +95,20 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         permissionBt.setOnClickListener {
             if (areAllPermissionsGranted()) {
                 /*여기에 성공 콜백 들어가야함*/
-                permissionGranted()
+                handlePermissionGranted()
                 finish()
             } else {
                 Toast.makeText(this, "필수 권한을 허용 해주세요.", Toast.LENGTH_SHORT).show()
             }
         }
-
+        /*툴바 뒤로가기 버튼*/
         toolbar_arrowLayout.setOnClickListener {
             if (areAllPermissionsGranted()) {
                 if (areAllPermissionsGranted()) {
                     /*여기에 콜백 들어가야함*/
-                    permissionGranted()
+                    handlePermissionGranted()
                 }else{
-                    permissionDenied()
+                    handlePermissionDenied()
                 }
                 finish()
             } else {
@@ -145,7 +122,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
                 override fun handleOnBackPressed() {
                     if (areAllPermissionsGranted()) {
                         /*여기에 콜백 들어가야함*/
-                        permissionGranted()
+                        handlePermissionGranted()
                         finish()
                     } else {
                         showBackPressedDialog()
@@ -156,36 +133,32 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     }
 
     private fun showBackPressedDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("권한 필요")
-        builder.setMessage("필수 권한을 허용하지 않으셨습니다. 앱을 종료 하시겠습니까??")
-
-        builder.setPositiveButton("예") { dialog, _ ->
-            if (areAllPermissionsGranted()) {
-                permissionGranted()
-            }else{
-                permissionDenied()
+        val alertDialogHandler = AlertDialogHandler(this)
+        alertDialogHandler.showDialog(
+            title = "권한 필요",
+            message = "필수 권한을 허용하지 않으셨습니다. 앱을 종료 하시겠습니까?",
+            positiveButtonText = "예",
+            negativeButtonText = "아니요",
+            onPositiveClick = {
+                handlePermissionDenied()
+                finish()
+            },
+            onNegativeClick = {
+                it.dismiss()
             }
-            finish()
-            dialog.dismiss()
-        }
-
-        builder.setNegativeButton("아니요") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
+        )
     }
 
     /*성공 콜백*/
-    private fun permissionGranted(){
+    private fun handlePermissionGranted(){
         axPermissionListener?.onPermissionGranted()
     }
     /*실패 콜백*/
-    private fun permissionDenied(){
+    private fun handlePermissionDenied(){
         axPermissionListener?.onPermissionDenied()
     }
 
+    /*퍼미션 리스트 아이템 클릭*/
     override fun onPerClick(permissionModel: AxPermissionModel?) {
         currentPermissionModel = permissionModel
         when (permissionModel?.perType) {
@@ -194,7 +167,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
             }
             "access" -> {
                 if (ContextCompat.checkSelfPermission(this@AxPermissionActivity, permissionModel.permission) == PackageManager.PERMISSION_GRANTED) {
-                    showGrantedPermissionDialog(this)
+                    showPermissionAlreadyGrantedDialog()
                 } else {
                     requestPermission(permissionModel)
                 }
@@ -220,14 +193,15 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                onPermissionGranted()
+                updatePermissionStatus()
             } else {
-                onPermissionDenied()
+                /*권한 거부시 다이얼로그 호출*/
+                showPermissionDeniedDialog()
             }
         }
     }
 
-    private fun onPermissionGranted() {
+    private fun updatePermissionStatus() {
         // 필수 권한 리스트 업데이트 및 RecyclerView 갱신
         essentialPermissionItemList?.forEachIndexed { index, essentialModel ->
             if (ContextCompat.checkSelfPermission(this@AxPermissionActivity, essentialModel.permission) == PackageManager.PERMISSION_GRANTED) {
@@ -248,55 +222,53 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         }
     }
 
-    private fun onPermissionDenied() {
-        showDeniedPermissionDialog()
+    private fun showPermissionDeniedDialog() {
+        val alertDialogHandler = AlertDialogHandler(this)
+        alertDialogHandler.showDialog(
+            title = "권한 필요",
+            message = "다음 권한이 거부되었습니다: ${currentPermissionModel?.perTitle}\n 권한을 다시 요청하시겠습니까?",
+            positiveButtonText = "예",
+            negativeButtonText = "아니요",
+            onPositiveClick = {
+                startPerSettingActivity()
+                it.dismiss()
+            },
+            onNegativeClick = {
+                it.dismiss()
+            }
+        )
     }
 
-    private fun showDeniedPermissionDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("권한 필요")
-        builder.setMessage("다음 권한이 거부되었습니다: ${currentPermissionModel?.perTitle}\n권한을 다시 요청하시겠습니까?")
-
-        builder.setPositiveButton("설정으로 이동") { dialog, _ ->
-            startPerSettingActivity()
-            dialog.dismiss()
-        }
-
-        builder.setNegativeButton("취소") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
-    }
-
+    /*앱 자체 권한창 으로 이동*/
     private fun startPerSettingActivity() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         intent.data = Uri.parse("package:$packageName")
         try {
-            settingsLauncher.launch(intent)
+            startActivity(intent)
         } catch (e: ActivityNotFoundException) {
             e.printStackTrace()
         }
     }
 
-    private fun showGrantedPermissionDialog(context: Context) {
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle("권한 이미 부여됨")
-        builder.setMessage("권한이 이미 설정되었습니다: \n다시 권한을 설정하시겠습니까?")
-
-        builder.setPositiveButton("예") { dialog, _ ->
-            startPerSettingActivity()
-            dialog.dismiss()
-        }
-
-        builder.setNegativeButton("아니오") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
+    /*이미 권한 부여 되어있을때 재설정 확인 다이얼로그*/
+    private fun showPermissionAlreadyGrantedDialog() {
+        val alertDialogHandler = AlertDialogHandler(this)
+        alertDialogHandler.showDialog(
+            title = "권한 이미 부여됨",
+            message = "권한이 이미 설정되었습니다: \n 다시 권한을 설정하시겠습니까?",
+            positiveButtonText = "예",
+            negativeButtonText = "아니요",
+            onPositiveClick = {
+                startPerSettingActivity()
+                it.dismiss()
+            },
+            onNegativeClick = {
+                it.dismiss()
+            }
+        )
     }
-
-    private fun updatePermissionState(permission:String , isGranted: Boolean){
+    /*아이템 상태 업데이트*/
+    private fun updateAndRefreshPermissions(permission:String , isGranted: Boolean){
         // 필수 권한 리스트 업데이트 및 RecyclerView 갱신
         essentialPermissionItemList?.forEachIndexed { index, essentialModel ->
             if (essentialModel.permission == permission) {
@@ -327,21 +299,30 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         return true
     }
 
+    /*권한 체크 상태*/
     private fun checkPermission(){
         CheckPermission().checkSelfPermission(this , essentialPermissionItemList)
         CheckPermission().checkSelfPermission(this , choicePermissionItemList)
 
         permissionBt.isVisible = areAllPermissionsGranted()
 
-        if(areAllPermissionsGranted()){
-            permissionGranted()
-            finish()
+        val state = intent.getStringExtra("state")
+        when(state){
+            "check" -> {
+                if(areAllPermissionsGranted()){
+                    handlePermissionGranted()
+                    finish()
+                }
+            }
+            "restart"->{
+
+            }
         }
     }
 
-    override fun onPermissionResult(permission: String?, isGranted: Boolean) {
+    override fun onPermissionLauncherResult(permission: String?, isGranted: Boolean) {
         if (permission != null) {
-            updatePermissionState(permission , isGranted)
+            updateAndRefreshPermissions(permission , isGranted)
         }
     }
 }

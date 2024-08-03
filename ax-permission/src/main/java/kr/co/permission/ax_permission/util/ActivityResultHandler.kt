@@ -41,7 +41,7 @@ class ActivityResultHandler(private val context: Context , private val listener:
             } else {
                 Toast.makeText(context, "${currentPermissionModel?.perTitle} 권한이 거부 되었습니다.", Toast.LENGTH_SHORT).show()
             }
-            listener.onPermissionResult(currentPermissionModel?.permission, isGranted)
+            listener.onPermissionLauncherResult(currentPermissionModel?.permission, isGranted)
         }
     }
 
@@ -58,7 +58,7 @@ class ActivityResultHandler(private val context: Context , private val listener:
         }
     }
     interface PermissionResultListener {
-        fun onPermissionResult(permission: String?, isGranted: Boolean)
+        fun onPermissionLauncherResult(permission: String?, isGranted: Boolean)
     }
 
 }
