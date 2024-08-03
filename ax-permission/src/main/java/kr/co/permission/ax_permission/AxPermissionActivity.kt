@@ -29,7 +29,7 @@ import kr.co.permission.ax_permission.util.ActivityResultHandler
 import kr.co.permission.ax_permission.util.AlertDialogHandler
 import kr.co.permission.ax_permission.util.AxPermissionSettings
 import kr.co.permission.ax_permission.util.CheckPermission
-import kr.co.permission.ax_permission.util.PermissionStateManager
+import kotlin.system.exitProcess
 
 class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener ,
     ActivityResultHandler.PermissionResultListener {
@@ -49,6 +49,23 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1001
     }
+
+    private val settingsLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if(axPermissionListener == null){
+                Toast.makeText(this@AxPermissionActivity , "필수 권한이 있어야 앱이 실행됩니다.", Toast.LENGTH_SHORT).show()
+                finishAffinity()
+                exitProcess(0)
+            }else{
+                currentPermissionModel?.let {
+                    if (ContextCompat.checkSelfPermission(this, it.permission) == PackageManager.PERMISSION_GRANTED) {
+                        handlePermissionGranted()
+                    } else {
+                        handlePermissionDenied()
+                    }
+                }
+            }
+        }
 
     override fun onStart() {
         super.onStart()
@@ -175,9 +192,6 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
 
     /*실패 콜백*/
     private fun handlePermissionDenied(){
-        if (axPermissionListener == null) {
-            PermissionStateManager.setPermissionDenied()
-        }
         axPermissionListener?.onPermissionDenied()
     }
 
@@ -269,7 +283,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         intent.data = Uri.parse("package:$packageName")
         try {
-            startActivity(intent)
+            settingsLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             e.printStackTrace()
         }
