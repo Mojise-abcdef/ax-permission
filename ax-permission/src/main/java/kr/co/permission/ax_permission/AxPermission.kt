@@ -10,13 +10,12 @@ import java.util.ArrayList
 
 @SuppressLint("StaticFieldLeak")
 class AxPermission private constructor(private val context: Context) {
-    private lateinit var permissionListener: AxPermissionListener
     private var essentialPermissionList = mutableListOf<String>()
     private var choicePermissionList = mutableListOf<String>()
     private var intent:Intent = Intent(context , AxPermissionActivity::class.java)
 
     fun setPermissionListener(listener: AxPermissionListener): AxPermission = apply {
-        this.permissionListener = listener
+        permissionListener = listener
     }
     /**
      * registerEssentialPermissionGlobally
@@ -35,6 +34,12 @@ class AxPermission private constructor(private val context: Context) {
         registerChoicePermissionGloballyList = this.choicePermissionList
     }
 
+    fun setSubmitButtonColors(buttonColor: Int , textColor:Int): AxPermission = apply {
+        submitButtonColor = buttonColor
+        submitTextColor = textColor
+    }
+
+
     fun check(): AxPermission {
         intent.putStringArrayListExtra(
             "essentialPermission",
@@ -44,8 +49,9 @@ class AxPermission private constructor(private val context: Context) {
             "choicePermission",
             choicePermissionList as ArrayList<String>
         )
+        intent.putExtra("submitButtonColor", submitButtonColor)
+        intent.putExtra("submitTextColor", submitTextColor)
         intent.putExtra("state","check")
-        listener = permissionListener
         context.startActivity(intent)
         return this
     }
@@ -55,8 +61,6 @@ class AxPermission private constructor(private val context: Context) {
     }
 
     fun onReStart(): AxPermission = apply {
-        /*this.essentialPermissionList = registerEssentialPermissionGloballyList
-        this.choicePermissionList = registerChoicePermissionGloballyList*/
 
         intent.putStringArrayListExtra(
             "essentialPermission",
@@ -66,18 +70,22 @@ class AxPermission private constructor(private val context: Context) {
             "choicePermission",
             registerChoicePermissionGloballyList as ArrayList<String>
         )
+
+        intent.putExtra("submitButtonColor", submitButtonColor)
+        intent.putExtra("submitTextColor", submitTextColor)
         intent.putExtra("state","restart")
-        listener = permissionListener
         context.startActivity(intent)
         this.check()
     }
 
 
     companion object {
-        var listener: AxPermissionListener? = null
+        var permissionListener: AxPermissionListener? = null
         lateinit var accessibilityServiceClass:Class<*>
         private var registerEssentialPermissionGloballyList = mutableListOf<String>()
         private var registerChoicePermissionGloballyList = mutableListOf<String>()
+        private var submitButtonColor: Int = 0
+        private var submitTextColor: Int = 0
         fun create(context: Context) = AxPermission(context)
     }
 }

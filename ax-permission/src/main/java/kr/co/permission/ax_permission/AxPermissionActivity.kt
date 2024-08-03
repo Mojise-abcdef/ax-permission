@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,7 +21,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import kr.co.permission.ax_permission.AxPermission.Companion.listener
+import kr.co.permission.ax_permission.AxPermission.Companion.permissionListener
 import kr.co.permission.ax_permission.listener.AxPermissionItemClickListener
 import kr.co.permission.ax_permission.listener.AxPermissionListener
 import kr.co.permission.ax_permission.model.AxPermissionModel
@@ -28,6 +29,7 @@ import kr.co.permission.ax_permission.util.ActivityResultHandler
 import kr.co.permission.ax_permission.util.AlertDialogHandler
 import kr.co.permission.ax_permission.util.AxPermissionSettings
 import kr.co.permission.ax_permission.util.CheckPermission
+import kr.co.permission.ax_permission.util.PermissionStateManager
 
 class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener ,
     ActivityResultHandler.PermissionResultListener {
@@ -61,7 +63,21 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         toolbar_arrowLayout = findViewById(R.id.toolbar_arrowLayout)
         perMissionRecyclerView.adapter = perMissionAdapter
         axPermissionSettings = AxPermissionSettings()
-        axPermissionListener = listener
+
+        /*완료 버튼 색상 변경*/
+        val submitButtonColor = intent.getIntExtra("submitButtonColor", 0)
+        if (submitButtonColor != 0) {
+            permissionBt.backgroundTintList = ContextCompat.getColorStateList(this, submitButtonColor)
+        } else {
+            permissionBt.backgroundTintList = ContextCompat.getColorStateList(this, R.color.colorAccent)
+        }
+        /*완료 버튼 텍스트 색상 변경*/
+        val submitTextColor = intent.getIntExtra("submitTextColor", 0)
+        if (submitTextColor != 0) {
+            permissionBt.setTextColor(ContextCompat.getColorStateList(this, submitTextColor))
+        } else {
+            permissionBt.setTextColor(ContextCompat.getColorStateList(this, R.color.white))
+        }
 
         /*필수 권한*/
         val essentialPermissionList =
@@ -69,6 +85,8 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         /*선택 권한*/
         val choicePermissionList =
             intent.getStringArrayListExtra("choicePermission")?.toMutableList()
+
+        axPermissionListener = permissionListener
 
         essentialPermissionItemList = essentialPermissionList?.let { list ->
             axPermissionSettings.setPermission(list.toMutableList())
@@ -152,11 +170,17 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     /*성공 콜백*/
     private fun handlePermissionGranted(){
         axPermissionListener?.onPermissionGranted()
+
     }
+
     /*실패 콜백*/
     private fun handlePermissionDenied(){
+        if (axPermissionListener == null) {
+            PermissionStateManager.setPermissionDenied()
+        }
         axPermissionListener?.onPermissionDenied()
     }
+
 
     /*퍼미션 리스트 아이템 클릭*/
     override fun onPerClick(permissionModel: AxPermissionModel?) {
@@ -195,7 +219,6 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 updatePermissionStatus()
                 permissionBt.isVisible = areAllPermissionsGranted()
-                println("@@@@ 여기를 탑니다 @@@")
             } else {
                 /*권한 거부시 다이얼로그 호출*/
                 showPermissionDeniedDialog()
@@ -228,7 +251,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
         val alertDialogHandler = AlertDialogHandler(this)
         alertDialogHandler.showDialog(
             title = "권한 필요",
-            message = "다음 권한이 거부되었습니다: ${currentPermissionModel?.perTitle}\n 권한을 다시 요청하시겠습니까?",
+            message = "다음 권한이 거부되었습니다: ${currentPermissionModel?.perTitle}\n권한을 다시 요청하시겠습니까?",
             positiveButtonText = "예",
             negativeButtonText = "아니요",
             onPositiveClick = {
@@ -315,7 +338,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
                 }
             }
             "restart"->{
-
+                permissionBt.isVisible = areAllPermissionsGranted()
             }
         }
     }
