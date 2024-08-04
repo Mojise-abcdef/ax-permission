@@ -53,9 +53,13 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     private val settingsLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if(axPermissionListener == null){
-                Toast.makeText(this@AxPermissionActivity , "필수 권한이 있어야 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
-                finishAffinity()
-                exitProcess(0)
+                if(!areAllPermissionsGranted()){
+                    Toast.makeText(this@AxPermissionActivity , "필수 권한이 있어야 앱을 실행할 수 있습니다.", Toast.LENGTH_SHORT).show()
+                    finishAffinity()
+                    exitProcess(0)
+                }else{
+                    finish()
+                }
             }else{
                 currentPermissionModel?.let {
                     if (ContextCompat.checkSelfPermission(this, it.permission) == PackageManager.PERMISSION_GRANTED) {

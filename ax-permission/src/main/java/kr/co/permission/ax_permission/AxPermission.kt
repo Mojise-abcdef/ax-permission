@@ -21,7 +21,7 @@ class AxPermission private constructor(private val context: Context) {
      * registerEssentialPermissionGlobally
      * 필수 권한 한번 등록시 기록이 남음
      ***/
-    fun setEssentialPermission(essentialPermissionList: List<String>): AxPermission = apply {
+    fun setRquiredPermissions(essentialPermissionList: List<String>): AxPermission = apply {
         this.essentialPermissionList.addAll(essentialPermissionList)
         registerEssentialPermissionGloballyList = this.essentialPermissionList
     }
@@ -29,7 +29,7 @@ class AxPermission private constructor(private val context: Context) {
      * registerChoicePermissionGlobally
      * 선택 권한 한번 등록시 기록이 남음
      ***/
-    fun setChoicePermission(choicePermissionList: List<String>): AxPermission = apply {
+    fun setOptionalPermissions(choicePermissionList: List<String>): AxPermission = apply {
         this.choicePermissionList.addAll(choicePermissionList)
         registerChoicePermissionGloballyList = this.choicePermissionList
     }

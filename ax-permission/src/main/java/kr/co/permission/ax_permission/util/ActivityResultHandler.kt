@@ -23,9 +23,12 @@ class ActivityResultHandler(private val context: Context , private val listener:
 
         var intent = Intent(permissionModel?.permission)
         if (intent.resolveActivity(context.packageManager) != null) {
+            intent.data = Uri.parse("package:" + context.packageName)
             launcher!!.launch(intent)
         }else{
-            intent = Intent(permissionModel?.permission, Uri.parse("package:" + context.packageName))
+            intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.parse("package:" + context.packageName)
+            }
             launcher?.launch(intent)
         }
     }
