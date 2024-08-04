@@ -6,13 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context=".MainActivity">
+    tools:context=".ConfigActivity">
 
     <Button
-        android:id="@+id/testButton"
+        android:id="@+id/configButton"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:text="화면이동"
+        android:text="권한 이동"
         android:backgroundTint="@color/colorAccent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
