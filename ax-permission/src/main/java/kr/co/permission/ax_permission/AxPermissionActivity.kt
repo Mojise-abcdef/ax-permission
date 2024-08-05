@@ -335,6 +335,7 @@ class AxPermissionActivity : AppCompatActivity(), AxPermissionItemClickListener 
     // 모든 권한이 부여되었는지 확인하는 메서드
     private fun areAllPermissionsGranted(): Boolean {
         essentialPermissionItemList?.forEach {
+            println("@@@ it = $it")
             if (!it.perState) {
                 return false
             }

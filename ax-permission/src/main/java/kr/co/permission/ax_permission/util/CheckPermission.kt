@@ -1,20 +1,18 @@
 package kr.co.permission.ax_permission.util
 
 import android.Manifest
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.wifi.WifiManager
 import android.nfc.NfcAdapter
 import android.os.Build
-import android.os.Environment
 import android.os.PowerManager
 import android.provider.Settings
-import android.text.TextUtils
+import android.view.accessibility.AccessibilityManager
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import kr.co.permission.ax_permission.AxPermission.Companion.accessibilityServiceClass
 import kr.co.permission.ax_permission.model.AxPermissionModel
 
 
@@ -33,7 +31,7 @@ class CheckPermission {
                 Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS -> it.perState = isIgnoringBatteryOptimizations(context)
                 Settings.ACTION_NFC_SETTINGS -> it.perState = isNfcPermissionGranted(context)
                 Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS -> it.perState = isNotificationListenerSettingsPermissionGranted(context)
-                Settings.ACTION_ACCESSIBILITY_SETTINGS -> it.perState = isAccessibilityServiceEnabled(context , accessibilityServiceClass)
+                Settings.ACTION_ACCESSIBILITY_SETTINGS -> it.perState = isAccessibilityServiceEnabled(context)
                 Manifest.permission.CHANGE_WIFI_STATE ->it.perState = isWifiEnabled(context)
                 else ->{
                     if (ContextCompat.checkSelfPermission(context, it.permission) == PackageManager.PERMISSION_GRANTED) {
@@ -113,25 +111,17 @@ class CheckPermission {
      * @param serviceClass 접근성 서비스 클래스
      * @return 접근성 서비스가 활성화된 경우 true, 그렇지 않은 경우 false
      */
-    fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boolean {
-        val accessibilityEnabled: Int = try {
-            Settings.Secure.getInt(context.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
-        } catch (e: Settings.SettingNotFoundException) {
-            e.printStackTrace()
-            return false
-        }
+    fun isAccessibilityServiceEnabled(context: Context): Boolean {
+        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-        if (accessibilityEnabled == 1) {
-            val settingValue = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            val colonSplitter = TextUtils.SimpleStringSplitter(':')
-            if (settingValue != null) {
-                colonSplitter.setString(settingValue)
-                while (colonSplitter.hasNext()) {
-                    val componentName = colonSplitter.next()
-                    if (componentName.equals("${context.packageName}/${serviceClass.canonicalName}", ignoreCase = true)) {
-                        return true
-                    }
-                }
+        // getEnabledAccessibilityServiceList는 현재 접근성 권한을 가진 리스트를 가져오게 된다
+        val serviceList = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
+        // val serviceList = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.DEFAULT)
+
+        // 접근성 권한을 가진 앱의 패키지 네임과 패키지 네임이 같으면 현재앱이 접근성 권한을 가지고 있다고 판단함
+        for (serviceInfo in serviceList) {
+            if (serviceInfo.resolveInfo.serviceInfo.packageName == context.packageName) {
+                return true
             }
         }
         return false

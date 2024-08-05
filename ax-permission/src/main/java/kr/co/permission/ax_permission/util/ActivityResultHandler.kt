@@ -9,7 +9,6 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import kr.co.permission.ax_permission.AxPermission.Companion.accessibilityServiceClass
 import kr.co.permission.ax_permission.AxPermissionActivity
 import kr.co.permission.ax_permission.model.AxPermissionModel
 
@@ -22,14 +21,24 @@ class ActivityResultHandler(private val context: Context , private val listener:
         currentPermissionModel = permissionModel
 
         var intent = Intent(permissionModel?.permission)
-        if (intent.resolveActivity(context.packageManager) != null) {
-            intent.data = Uri.parse("package:" + context.packageName)
-            launcher!!.launch(intent)
-        }else{
-            intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:" + context.packageName)
+
+        if(permissionModel?.permission == Settings.ACTION_ACCESSIBILITY_SETTINGS){
+            intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION)
+                launcher?.launch(intent)
             }
-            launcher?.launch(intent)
+        }else{
+            if (intent.resolveActivity(context.packageManager) != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION)
+                intent.data = Uri.parse("package:" + context.packageName)
+                launcher!!.launch(intent)
+            }else{
+                intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION)
+                    data = Uri.parse("package:" + context.packageName)
+                }
+                launcher?.launch(intent)
+            }
         }
     }
 
@@ -55,7 +64,7 @@ class ActivityResultHandler(private val context: Context , private val listener:
             Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS -> CheckPermission().isIgnoringBatteryOptimizations(context)
             Settings.ACTION_NFC_SETTINGS -> CheckPermission().isNfcPermissionGranted(context)
             Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS -> CheckPermission().isNotificationListenerSettingsPermissionGranted(context)
-            Settings.ACTION_ACCESSIBILITY_SETTINGS -> CheckPermission().isAccessibilityServiceEnabled(context , accessibilityServiceClass)
+            Settings.ACTION_ACCESSIBILITY_SETTINGS -> CheckPermission().isAccessibilityServiceEnabled(context)
             Manifest.permission.CHANGE_WIFI_STATE ->CheckPermission().isWifiEnabled(context)
             else -> false
         }

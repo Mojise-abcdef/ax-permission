@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         /*선택 권한 리스트*/
         val choicePermissionList: MutableList<String> = ArrayList()
 
+        essentialPermissionsList.add(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+
         essentialPermissionsList.add(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
 
         essentialPermissionsList.add(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -47,21 +49,13 @@ class MainActivity : AppCompatActivity() {
 
         create(this)
             .setPermissionListener(permissionListener)
-            .setRquiredPermissions(essentialPermissionsList)
+            .setRequiredPermissions(essentialPermissionsList)
             .setOptionalPermissions(choicePermissionList)
             .setSubmitButtonColors(
                 buttonColor = R.color.purple_200 ,
                 textColor = R.color.black
             )
             .check()
-
-        AxPermission.create(this).setPermissionListener(object : AxPermissionListener {
-                override fun onPermissionDenied() {
-                }
-                override fun onPermissionGranted() {
-                }
-            })
-            .onReStart()
     }
 
     private var permissionListener: AxPermissionListener = object : AxPermissionListener {

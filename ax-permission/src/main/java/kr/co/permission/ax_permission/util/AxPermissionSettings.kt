@@ -60,9 +60,6 @@ class AxPermissionSettings {
         )
 
 
-
-
-
         /*팝업 알림*/
         perMap[Manifest.permission.CALL_PHONE] = AxPermissionModel(
             "전화 걸기",
