@@ -11,7 +11,7 @@
         android:text="* 필수 권한 *"
         android:textColor="@color/colorTextDark"
         android:fontFamily="@font/scdream4"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"

@@ -136,4 +136,14 @@ class CheckPermission {
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         return wifiManager.isWifiEnabled
     }
+
+    /**
+     * 알람 접근 권한이 부여되었는지 확인하는 메서드
+     *
+     * @param context 애플리케이션 컨텍스트
+     * @return 알람 접근 활성화된 경우 true, 그렇지 않은 경우 false
+     */
+    fun isCanNotificationAccessible(context: Context): Boolean{
+        return NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+    }
 }

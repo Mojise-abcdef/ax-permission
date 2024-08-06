@@ -1,17 +1,19 @@
 package kr.co.permission.permission
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap.Config
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import kr.co.permission.ax_permission.AxPermission
 import kr.co.permission.ax_permission.AxPermission.Companion.create
 import kr.co.permission.ax_permission.listener.AxPermissionListener
-import kotlin.system.exitProcess
+import kr.co.permission.ax_permission.util.AxPermissionList
+
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,40 +25,45 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         /*필수 권한 리스트*/
-        val essentialPermissionsList: MutableList<String> = ArrayList()
+        val requiredPermissions = AxPermissionList()
+
         /*선택 권한 리스트*/
-        val choicePermissionList: MutableList<String> = ArrayList()
+        val optionalPermissions = AxPermissionList()
 
-        essentialPermissionsList.add(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-
-        essentialPermissionsList.add(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-
-        essentialPermissionsList.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        essentialPermissionsList.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        essentialPermissionsList.add(Manifest.permission.CALL_PHONE)
+        //requiredPermissions.add(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,"앱 위에 그리기 권한이 필요합니다. 설정에서 권한을 허용해주세요.")
+        requiredPermissions.add(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,"앱 위에 그리기 권한이 필요합니다. 설정에서 권한을 허용해주세요. TEST 입니다.")
+        requiredPermissions.add(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
 
         // 버전별 권한
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            choicePermissionList.add(Manifest.permission.POST_NOTIFICATIONS)
-            choicePermissionList.add(Manifest.permission.READ_MEDIA_IMAGES)
-            choicePermissionList.add(Manifest.permission.READ_MEDIA_VIDEO)
+            optionalPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            optionalPermissions.add(Manifest.permission.READ_MEDIA_IMAGES , "이미지 읽기 입니다.")
+            optionalPermissions.add(Manifest.permission.READ_MEDIA_VIDEO)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            choicePermissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            optionalPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
-            choicePermissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            choicePermissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            optionalPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            optionalPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
         create(this)
             .setPermissionListener(permissionListener)
-            .setRequiredPermissions(essentialPermissionsList)
-            .setOptionalPermissions(choicePermissionList)
+            .setRequiredPermissions(requiredPermissions)
+            .setOptionalPermissions(optionalPermissions)
             .setSubmitButtonColors(
-                buttonColor = R.color.purple_200 ,
+                buttonBackgroundColor = R.color.purple_200 ,
                 textColor = R.color.black
             )
             .check()
+
+        testButton = findViewById(R.id.testButton)
+        testButton.setOnClickListener {
+            startActivity(Intent(this , ConfigActivity::class.java))
+        }
     }
+
 
     private var permissionListener: AxPermissionListener = object : AxPermissionListener {
         override fun onPermissionGranted() {
@@ -65,6 +72,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPermissionDenied() {
             /*실패 콜백 리스너*/
+            finish()
         }
     }
 }

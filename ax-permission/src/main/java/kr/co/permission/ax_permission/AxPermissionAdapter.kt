@@ -121,8 +121,8 @@ class AxPermissionAdapter(private val context: Context, private val axPermission
                     perSetText.setTextColor(ContextCompat.getColor(context, R.color.colorTextDark))
                 }
 
-                perSetBtn.setOnClickListener {
-                    axPermissionItemClickListener.onPerClick(axPermissionModel)
+                perLayout.setOnClickListener {
+                    axPermissionItemClickListener.onPerClick(axPermissionModel , adapterPosition)
                 }
 
                 perSetBtn.isSelected = it.perState

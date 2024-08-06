@@ -66,6 +66,7 @@ class ActivityResultHandler(private val context: Context , private val listener:
             Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS -> CheckPermission().isNotificationListenerSettingsPermissionGranted(context)
             Settings.ACTION_ACCESSIBILITY_SETTINGS -> CheckPermission().isAccessibilityServiceEnabled(context)
             Manifest.permission.CHANGE_WIFI_STATE ->CheckPermission().isWifiEnabled(context)
+            Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS -> CheckPermission().isCanNotificationAccessible(context)
             else -> false
         }
     }
